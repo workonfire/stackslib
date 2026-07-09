@@ -36,7 +36,18 @@ class Room:
 
     @property
     def started(self) -> bool:
-        return self.game is not None and self.game.active
+        return self.game is not None and not self.finished
+
+    @property
+    def finished(self) -> bool:
+        return (
+            self.game is not None
+            and (
+                not self.game.active
+                or self.game.winner is not None
+                or self.game.get_winner() is not None
+            )
+        )
 
     def add_player(self, name: str, websocket: Any) -> Player:
         if self.started:

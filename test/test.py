@@ -326,6 +326,27 @@ class ServerTest(unittest.TestCase):
         self.assertEqual(room.game.players, [alice])
         self.assertFalse(room.game.active)
 
+    def test_start_replaces_active_game_that_already_has_winner(self):
+        rules = {'starting_cards': 3, 'cheats': False, 'card_stacking': False}
+        server = UnoServer(rules)
+        room = Room("test", rules)
+        alice = Player("alice")
+        bob = Player("bob")
+        alice_socket = ServerRecordingWebSocket()
+        bob_socket = ServerRecordingWebSocket()
+        room.players = {alice.name: alice, bob.name: bob}
+        room.connections = {alice.name: alice_socket, bob.name: bob_socket}
+        old_game = Game([alice, bob], rules)
+        alice.hand = []
+        room.game = old_game
+
+        asyncio.run(server._start_game(room))
+
+        self.assertIsNot(room.game, old_game)
+        self.assertTrue(room.game.active)
+        self.assertEqual(alice_socket.messages[0], {'type': 'info', 'message': 'Game started.'})
+        self.assertEqual(bob_socket.messages[0], {'type': 'info', 'message': 'Game started.'})
+
     def test_leave_broadcasts_info_to_every_connected_player(self):
         rules = {'starting_cards': 3, 'cheats': False, 'card_stacking': False}
         server = UnoServer(rules)
