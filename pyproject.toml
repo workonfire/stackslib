@@ -5,7 +5,6 @@ description = "UNO Card game engine and a multiplayer server"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
-    "rich>=13.0.0",
     "websockets>=12.0"
 ]
 

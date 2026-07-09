@@ -311,14 +311,17 @@ def main() -> None:
         raise SystemExit("Starting cards can't be lower than 2.")
 
     logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
-    asyncio.run(serve(
-        arguments.host,
-        arguments.port,
-        {
-            'starting_cards': arguments.starting_cards,
-            'card_stacking': not arguments.disable_card_stacking,
-        },
-    ))
+    try:
+        asyncio.run(serve(
+            arguments.host,
+            arguments.port,
+            {
+                'starting_cards': arguments.starting_cards,
+                'card_stacking': not arguments.disable_card_stacking,
+            },
+        ))
+    except KeyboardInterrupt:
+        logging.info("stackslib server stopped.")
 
 
 if __name__ == '__main__':
