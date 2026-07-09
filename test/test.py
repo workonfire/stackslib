@@ -280,6 +280,34 @@ class ServerTest(unittest.TestCase):
 
         self.assertEqual(alice_socket.messages[0], {'type': 'error', 'message': 'Chat message cannot be empty.'})
 
+    def test_play_card_broadcasts_info_to_every_connected_player(self):
+        rules = {'starting_cards': 3, 'cheats': False, 'card_stacking': False}
+        server = UnoServer(rules)
+        room = Room("test", rules)
+        alice = Player("alice")
+        bob = Player("bob")
+        alice_socket = ServerRecordingWebSocket()
+        bob_socket = ServerRecordingWebSocket()
+        room.players = {alice.name: alice, bob.name: bob}
+        room.connections = {alice.name: alice_socket, bob.name: bob_socket}
+        room.game = Game([alice, bob], rules)
+        room.game.stack = [Card(CardType.CARD_5, CardColor.RED)]
+        alice.hand = [Card(CardType.CARD_7, CardColor.RED), Card(CardType.CARD_9, CardColor.BLUE)]
+
+        asyncio.run(server._handle_message(
+            room,
+            alice,
+            '{"action": "play", "card": {"type": "CARD_7", "color": "RED"}}',
+        ))
+
+        expected = {
+            'type': 'play',
+            'player': 'alice',
+            'card': {'type': 'CARD_7', 'color': 'RED'},
+        }
+        self.assertEqual(alice_socket.messages[0], expected)
+        self.assertEqual(bob_socket.messages[0], expected)
+
     def test_leave_broadcasts_info_to_every_connected_player(self):
         rules = {'starting_cards': 3, 'cheats': False, 'card_stacking': False}
         server = UnoServer(rules)

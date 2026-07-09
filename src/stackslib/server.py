@@ -10,6 +10,7 @@ from stackslib.exceptions import CardNotInPossessionError, CardNotPlayableError
 from stackslib.game import Card, Game, GameEvent, Player
 from stackslib.protocol import (
     card_from_dict,
+    card_to_dict,
     error_message,
     event_to_dict,
     info_message,
@@ -192,6 +193,11 @@ class UnoServer:
                     GameEventType.COLOR_CHANGED,
                     {'player': player, 'new_color': selected_color},
                 )
+            await self._broadcast_room(room, {
+                'type': 'play',
+                'player': player.name,
+                'card': card_to_dict(card),
+            })
             await self._finish_turn(room, event)
         except KeyError:
             await self._send(room.connections[player.name], error_message("Invalid card or color."))
