@@ -2,6 +2,22 @@
 
 A simple Python implementation of the UNO card game.
 
+## Multiplayer server
+
+Start a local multiplayer server:
+
+```bash
+stackslib-server
+```
+
+Server options:
+
+```bash
+stackslib-server --host 127.0.0.1 --port 8765 --starting-cards 7
+```
+
+Use `--disable-card-stacking` to start rooms with card stacking disabled.
+
 ## API Preview
 These are just **examples**.
 - Inspecting a card
@@ -56,4 +72,3 @@ print(turn.playable_cards) # gets all currently playable cards
 print(turn.most_reasonable_color) # selects the appriopriate color based on how many times it appears
 print(turn.get_result()) # Prints a card to play with
 ```
-
