@@ -2,6 +2,14 @@
 
 A simple Python implementation of the UNO card game.
 
+## Installation
+
+```bash
+git clone https://github.com/workonfire/stackslib.git
+cd stackslib
+python -m pip install -e .
+```
+
 ## Multiplayer server
 
 Start a local multiplayer server:
