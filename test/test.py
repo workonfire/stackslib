@@ -347,6 +347,57 @@ class ServerTest(unittest.TestCase):
         self.assertEqual(alice_socket.messages[0], {'type': 'info', 'message': 'Game started.'})
         self.assertEqual(bob_socket.messages[0], {'type': 'info', 'message': 'Game started.'})
 
+    def test_start_announces_game_chat_command(self):
+        rules = {'starting_cards': 3, 'cheats': False, 'card_stacking': False}
+        server = UnoServer(rules)
+        room = Room("test", rules)
+        alice = Player("alice")
+        bob = Player("bob")
+        alice_socket = ServerRecordingWebSocket()
+        bob_socket = ServerRecordingWebSocket()
+        room.players = {alice.name: alice, bob.name: bob}
+        room.connections = {alice.name: alice_socket, bob.name: bob_socket}
+
+        asyncio.run(server._start_game(room))
+
+        self.assertEqual(
+            alice_socket.messages[1],
+            {'type': 'info', 'message': 'Use /chat <message> to chat during the game.'},
+        )
+        self.assertEqual(
+            bob_socket.messages[1],
+            {'type': 'info', 'message': 'Use /chat <message> to chat during the game.'},
+        )
+
+    def test_chat_broadcasts_to_every_connected_player(self):
+        rules = {'starting_cards': 3, 'cheats': False, 'card_stacking': False}
+        server = UnoServer(rules)
+        room = Room("test", rules)
+        alice = Player("alice")
+        bob = Player("bob")
+        alice_socket = ServerRecordingWebSocket()
+        bob_socket = ServerRecordingWebSocket()
+        room.players = {alice.name: alice, bob.name: bob}
+        room.connections = {alice.name: alice_socket, bob.name: bob_socket}
+
+        asyncio.run(server._handle_message(room, alice, '{"action": "chat", "message": "hello"}'))
+
+        self.assertEqual(alice_socket.messages[0], {'type': 'chat', 'player': 'alice', 'message': 'hello'})
+        self.assertEqual(bob_socket.messages[0], {'type': 'chat', 'player': 'alice', 'message': 'hello'})
+
+    def test_blank_chat_returns_error_to_sender(self):
+        rules = {'starting_cards': 3, 'cheats': False, 'card_stacking': False}
+        server = UnoServer(rules)
+        room = Room("test", rules)
+        alice = Player("alice")
+        alice_socket = ServerRecordingWebSocket()
+        room.players = {alice.name: alice}
+        room.connections = {alice.name: alice_socket}
+
+        asyncio.run(server._handle_message(room, alice, '{"action": "chat", "message": "   "}'))
+
+        self.assertEqual(alice_socket.messages[0], {'type': 'error', 'message': 'Chat message cannot be empty.'})
+
     def test_leave_broadcasts_info_to_every_connected_player(self):
         rules = {'starting_cards': 3, 'cheats': False, 'card_stacking': False}
         server = UnoServer(rules)

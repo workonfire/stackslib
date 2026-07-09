@@ -136,6 +136,8 @@ class UnoServer:
             await self._draw_card(room, player)
         elif action == 'pass':
             await self._pass_turn(room, player)
+        elif action == 'chat':
+            await self._chat(room, player, message)
         elif action == 'leave':
             await self._announce_player_left(room, player)
             await room.connections[player.name].close()
@@ -152,7 +154,19 @@ class UnoServer:
 
         room.game = Game(list(room.players.values()), room.rules.copy())
         await self._broadcast_room(room, info_message("Game started."))
+        await self._broadcast_room(room, info_message("Use /chat <message> to chat during the game."))
         await self._broadcast_room_state(room)
+
+    async def _chat(self, room: Room, player: Player, message: dict[str, Any]) -> None:
+        text = str(message.get('message') or '').strip()
+        if not text:
+            await self._send(room.connections[player.name], error_message("Chat message cannot be empty."))
+            return
+        await self._broadcast_room(room, {
+            'type': 'chat',
+            'player': player.name,
+            'message': text,
+        })
 
     async def _play_card(self, room: Room, player: Player, message: dict[str, Any]) -> None:
         game = await self._active_game(room, player)
