@@ -36,13 +36,14 @@ class Room:
 
     @property
     def started(self) -> bool:
-        return self.game is not None
+        return self.game is not None and self.game.active
 
     def add_player(self, name: str, websocket: Any) -> Player:
         if self.started:
             raise ValueError("This game has already started.")
         if name in self.players:
             raise ValueError("That player name is already taken in this room.")
+        self.announced_departures.discard(name)
         player = Player(name)
         self.players[name] = player
         self.connections[name] = websocket
